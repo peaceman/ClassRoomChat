@@ -125,15 +125,14 @@ public class MainActivity extends ListActivity {
                     android.text.format.Time time = new android.text.format.Time();
                     time.parse3339(jsonObject.getString("Time"));
 
-                    HashMap<String, String> messageMap = new HashMap<String, String>();
+                    final HashMap<String, String> messageMap = new HashMap<String, String>();
                     messageMap.put("Time", String.format("%02d:%02d:%02d", time.hour, time.minute, time.second));
                     messageMap.put("Content", jsonObject.getString("Content"));
-
-                    chatEntries.add(messageMap);
 
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
+                            chatEntries.add(messageMap);
                             mChatListAdapter.notifyDataSetChanged();
                         }
                     });
