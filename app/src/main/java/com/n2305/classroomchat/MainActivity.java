@@ -22,6 +22,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.TimeZone;
 
 
 public class MainActivity extends ListActivity {
@@ -124,9 +125,10 @@ public class MainActivity extends ListActivity {
                     JSONObject jsonObject = new JSONObject(message);
                     android.text.format.Time time = new android.text.format.Time();
                     time.parse3339(jsonObject.getString("Time"));
+                    time.switchTimezone(TimeZone.getDefault().getID());
 
                     final HashMap<String, String> messageMap = new HashMap<String, String>();
-                    messageMap.put("Time", String.format("%02d:%02d:%02d", time.hour, time.minute, time.second));
+                    messageMap.put("Time", time.format("%H:%M:%S"));
                     messageMap.put("Content", jsonObject.getString("Content"));
 
                     runOnUiThread(new Runnable() {
