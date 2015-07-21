@@ -8,8 +8,10 @@ import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.SimpleAdapter;
+import android.widget.TextView;
 
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.drafts.Draft_17;
@@ -49,16 +51,17 @@ public class MainActivity extends ListActivity {
     private void setupChatInput() {
         mChatInput = (EditText) findViewById(R.id.chatInput);
 
-        mChatInput.setOnKeyListener(new View.OnKeyListener() {
+        mChatInput.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
-            public boolean onKey(View v, int keyCode, KeyEvent event) {
-                if (event.getAction() == KeyEvent.ACTION_DOWN) {
-                    switch (keyCode) {
-                        case KeyEvent.KEYCODE_ENTER:
-                            mWebSocketClient.send(mChatInput.getText().toString());
-                            mChatInput.setText("");
-                            return true;
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if (actionId == EditorInfo.IME_ACTION_DONE) {
+                    if (mChatInput.getText().length() == 0) {
+                        return false;
                     }
+
+                    mWebSocketClient.send(mChatInput.getText().toString());
+                    mChatInput.setText("");
+                    return true;
                 }
 
                 return false;
