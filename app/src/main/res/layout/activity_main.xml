@@ -3,13 +3,22 @@
     android:orientation="vertical"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
+    android:focusable="true" android:focusableInTouchMode="true"
     tools:context=".MainActivity">
 
     <ListView
         android:id="@android:id/list"
         android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
+        android:layout_height="0dip"
+        android:layout_weight="1"
         android:stackFromBottom="true"
         android:transcriptMode="normal"></ListView>
+
+    <EditText
+        android:id="@+id/chatInput"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:inputType="text"
+        android:hint="@string/chat_input_hint" />
 
 </LinearLayout>

@@ -5,9 +5,12 @@ import android.os.Build;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import org.java_websocket.client.WebSocketClient;
@@ -22,14 +25,38 @@ import java.net.URISyntaxException;
 public class MainActivity extends ListActivity {
     private ArrayAdapter<String> mChatListAdapter;
     private WebSocketClient mWebSocketClient;
+    private EditText mChatInput;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        setupChatInput();
+
         mChatListAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
         setListAdapter(mChatListAdapter);
+    }
+
+    private void setupChatInput() {
+        mChatInput = (EditText)findViewById(R.id.chatInput);
+
+        mChatInput.setOnKeyListener(new View.OnKeyListener() {
+            @Override
+            public boolean onKey(View v, int keyCode, KeyEvent event) {
+                if (event.getAction() == KeyEvent.ACTION_DOWN) {
+                    switch (keyCode) {
+                        case KeyEvent.KEYCODE_ENTER:
+                            mWebSocketClient.send(mChatInput.getText().toString());
+                            mChatInput.setText("");
+                            mChatInput.clearFocus();
+                            return true;
+                    }
+                }
+
+                return false;
+            }
+        });
     }
 
     @Override
@@ -42,7 +69,7 @@ public class MainActivity extends ListActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
 //        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return false;
+        return true;
     }
 
     @Override
