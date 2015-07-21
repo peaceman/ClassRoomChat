@@ -1,11 +1,13 @@
 package com.n2305.classroomchat;
 
+import android.app.ListActivity;
 import android.os.Build;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
 import org.java_websocket.client.WebSocketClient;
@@ -17,14 +19,17 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 
-public class MainActivity extends ActionBarActivity {
-
+public class MainActivity extends ListActivity {
+    private ArrayAdapter<String> mChatListAdapter;
     private WebSocketClient mWebSocketClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        mChatListAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
+        setListAdapter(mChatListAdapter);
     }
 
     @Override
@@ -83,11 +88,11 @@ public class MainActivity extends ActionBarActivity {
             @Override
             public void onMessage(String message) {
                 final String msg = message;
+
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        TextView textView = (TextView)findViewById(R.id.messages);
-                        textView.setText(textView.getText() + "\n" + msg);
+                        mChatListAdapter.add(msg);
                     }
                 });
             }
