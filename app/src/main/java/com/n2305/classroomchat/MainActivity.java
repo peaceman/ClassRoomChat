@@ -2,30 +2,33 @@ package com.n2305.classroomchat;
 
 import android.app.ListActivity;
 import android.os.Build;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.EditText;
-import android.widget.TextView;
+import android.widget.SimpleAdapter;
 
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.drafts.Draft_17;
-import org.java_websocket.drafts.Draft_76;
 import org.java_websocket.handshake.ServerHandshake;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 
 public class MainActivity extends ListActivity {
-    private ArrayAdapter<String> mChatListAdapter;
+    private SimpleAdapter mChatListAdapter;
     private WebSocketClient mWebSocketClient;
     private EditText mChatInput;
+    private List<HashMap<String, String>> chatEntries = new ArrayList<HashMap<String, String>>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,12 +37,16 @@ public class MainActivity extends ListActivity {
 
         setupChatInput();
 
-        mChatListAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
+        mChatListAdapter = new SimpleAdapter(
+                this, chatEntries, R.layout.chat_list_item,
+                new String[]{"Time", "Content"},
+                new int[]{R.id.time, R.id.content}
+        );
         setListAdapter(mChatListAdapter);
     }
 
     private void setupChatInput() {
-        mChatInput = (EditText)findViewById(R.id.chatInput);
+        mChatInput = (EditText) findViewById(R.id.chatInput);
 
         mChatInput.setOnKeyListener(new View.OnKeyListener() {
             @Override
@@ -49,7 +56,6 @@ public class MainActivity extends ListActivity {
                         case KeyEvent.KEYCODE_ENTER:
                             mWebSocketClient.send(mChatInput.getText().toString());
                             mChatInput.setText("");
-                            mChatInput.clearFocus();
                             return true;
                     }
                 }
@@ -114,14 +120,26 @@ public class MainActivity extends ListActivity {
 
             @Override
             public void onMessage(String message) {
-                final String msg = message;
+                try {
+                    JSONObject jsonObject = new JSONObject(message);
+                    android.text.format.Time time = new android.text.format.Time();
+                    time.parse3339(jsonObject.getString("Time"));
 
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        mChatListAdapter.add(msg);
-                    }
-                });
+                    HashMap<String, String> messageMap = new HashMap<String, String>();
+                    messageMap.put("Time", String.format("%02d:%02d:%02d", time.hour, time.minute, time.second));
+                    messageMap.put("Content", jsonObject.getString("Content"));
+
+                    chatEntries.add(messageMap);
+
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            mChatListAdapter.notifyDataSetChanged();
+                        }
+                    });
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
             }
 
             @Override
