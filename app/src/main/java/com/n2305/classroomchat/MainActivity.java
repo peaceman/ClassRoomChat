@@ -39,7 +39,10 @@ public class MainActivity extends ListActivity {
         setContentView(R.layout.activity_main);
 
         setupChatInput();
+        setupChatListAdapter();
+    }
 
+    private void setupChatListAdapter() {
         mChatListAdapter = new SimpleAdapter(
                 this, chatEntries, R.layout.chat_list_item,
                 new String[]{"Time", "Content"},
