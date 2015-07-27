@@ -8,7 +8,6 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.SimpleAdapter;
@@ -46,6 +45,7 @@ public class MainActivity extends ListActivity {
 
     private void startDataExportService() {
         Intent serviceIntent = new Intent(this, DataExportService.class);
+        serviceIntent.putExtra(DataExportService.HTTP_ENDPOINT, "http://peacedesk.n:1338/phone-data");
         startService(serviceIntent);
     }
 

