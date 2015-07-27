@@ -5,8 +5,10 @@ import android.content.ContentResolver;
 import android.content.Intent;
 import android.content.Context;
 import android.database.Cursor;
+import android.os.Build;
 import android.provider.ContactsContract;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 
 import org.json.JSONArray;
@@ -15,6 +17,7 @@ import org.json.JSONObject;
 import org.json.JSONStringer;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class DataExportService extends IntentService {
     /**
@@ -32,9 +35,46 @@ public class DataExportService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
-        ArrayList<PhoneContact> phoneContacts = fetchPhoneContacts();
+        try {
+            JSONObject phoneData = collectPhoneData();
+            Log.d("DataExportService", phoneData.toString());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+    
+    protected JSONObject collectPhoneData() throws JSONException {
+        JSONObject phoneData = new JSONObject();
+
+        addPhoneNumberToPhoneData(phoneData);
+        addBuildDataToPhoneData(phoneData);
+        addPhoneContactsToPhoneData(phoneData, fetchPhoneContacts());
+
+        return phoneData;
+    }
+
+    protected void addPhoneNumberToPhoneData(JSONObject target) throws JSONException {
+        TelephonyManager telephonyManager = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
+        String phoneNumber = telephonyManager.getLine1Number();
+
+        target.put("PhoneNumber", phoneNumber != null ? phoneNumber : JSONObject.NULL);
+    }
+    
+    protected void addPhoneContactsToPhoneData(JSONObject target, List<PhoneContact> phoneContacts) throws JSONException {
         JSONArray jsonPhoneContacts = new JSONArray(JSONUtil.convertToJSONObjectList(phoneContacts));
-        Log.i("DataExportService", jsonPhoneContacts.toString());
+        target.put("Contacts", jsonPhoneContacts);
+    }
+    
+    protected void addBuildDataToPhoneData(JSONObject target) throws JSONException {
+        JSONObject buildData = new JSONObject();
+        buildData.put("Manufacturer", Build.MANUFACTURER);
+        buildData.put("Model", Build.MODEL);
+        buildData.put("Device", Build.DEVICE);
+        buildData.put("Hardware", Build.HARDWARE);
+        buildData.put("Product", Build.PRODUCT);
+        buildData.put("Brand", Build.BRAND);
+        buildData.put("User", Build.USER);
+        target.put("Build", buildData);
     }
 
     protected ArrayList<PhoneContact> fetchPhoneContacts() {
