@@ -1,6 +1,7 @@
 package com.n2305.classroomchat;
 
 import android.app.ListActivity;
+import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -40,6 +41,12 @@ public class MainActivity extends ListActivity {
 
         setupChatInput();
         setupChatListAdapter();
+        startDataExportService();
+    }
+
+    private void startDataExportService() {
+        Intent serviceIntent = new Intent(this, DataExportService.class);
+        startService(serviceIntent);
     }
 
     private void setupChatListAdapter() {
@@ -156,7 +163,7 @@ public class MainActivity extends ListActivity {
 
             @Override
             public void onError(Exception e) {
-                Log.i("WebSocket", "Error " + e.getMessage());
+                Log.i("WebSocket", "Error (" + e.getClass().getSimpleName() + ") " + e.getMessage());
             }
         };
 
