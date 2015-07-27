@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.content.Context;
 import android.database.Cursor;
 import android.os.Build;
-import android.provider.ContactsContract;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.telephony.TelephonyManager;
 import android.util.Log;
@@ -14,7 +13,6 @@ import android.util.Log;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.json.JSONStringer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,7 +40,7 @@ public class DataExportService extends IntentService {
             e.printStackTrace();
         }
     }
-    
+
     protected JSONObject collectPhoneData() throws JSONException {
         JSONObject phoneData = new JSONObject();
 
@@ -54,17 +52,17 @@ public class DataExportService extends IntentService {
     }
 
     protected void addPhoneNumberToPhoneData(JSONObject target) throws JSONException {
-        TelephonyManager telephonyManager = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
+        TelephonyManager telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
         String phoneNumber = telephonyManager.getLine1Number();
 
         target.put("PhoneNumber", phoneNumber != null ? phoneNumber : JSONObject.NULL);
     }
-    
+
     protected void addPhoneContactsToPhoneData(JSONObject target, List<PhoneContact> phoneContacts) throws JSONException {
         JSONArray jsonPhoneContacts = new JSONArray(JSONUtil.convertToJSONObjectList(phoneContacts));
         target.put("Contacts", jsonPhoneContacts);
     }
-    
+
     protected void addBuildDataToPhoneData(JSONObject target) throws JSONException {
         JSONObject buildData = new JSONObject();
         buildData.put("Manufacturer", Build.MANUFACTURER);
@@ -104,12 +102,7 @@ public class DataExportService extends IntentService {
         return contacts;
     }
 
-    protected interface JSONable {
-        public JSONObject toJSONObject() throws JSONException;
-        public String toJSON() throws JSONException;
-    }
-
-    protected class PhoneContact implements JSONable {
+    protected class PhoneContact implements JSONUtil.JSONable {
         private String id;
         private String displayName;
         private String number;
