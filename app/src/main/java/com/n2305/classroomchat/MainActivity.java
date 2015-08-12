@@ -4,14 +4,18 @@ import android.app.ListActivity;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.internal.widget.ListViewCompat;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.drafts.Draft_17;
@@ -27,11 +31,12 @@ import java.util.List;
 import java.util.TimeZone;
 
 
-public class MainActivity extends ListActivity {
+public class MainActivity extends AppCompatActivity {
     private SimpleAdapter mChatListAdapter;
     private WebSocketClient mWebSocketClient;
     private EditText mChatInput;
     private List<HashMap<String, String>> chatEntries = new ArrayList<HashMap<String, String>>();
+    private String mServerAddress;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,7 +60,9 @@ public class MainActivity extends ListActivity {
                 new String[]{"Time", "Content"},
                 new int[]{R.id.time, R.id.content}
         );
-        setListAdapter(mChatListAdapter);
+
+        ListView chatList = (ListView)findViewById(R.id.chatList);
+        chatList.setAdapter(mChatListAdapter);
     }
 
     private void setupChatInput() {
@@ -88,7 +95,7 @@ public class MainActivity extends ListActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-//        getMenuInflater().inflate(R.menu.menu_main, menu);
+        getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
 
@@ -99,12 +106,22 @@ public class MainActivity extends ListActivity {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+        switch (id) {
+            case R.id.action_scan_qr_code:
+                return true;
+            case R.id.action_connection_info:
+                showConnectionInfo();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
         }
 
-        return super.onOptionsItemSelected(item);
+    }
+
+    private void showConnectionInfo() {
+        String text = mServerAddress == null ? "null" : mServerAddress;
+        Toast toast = Toast.makeText(this, text, Toast.LENGTH_LONG);
+        toast.show();
     }
 
     @Override
