@@ -18,7 +18,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.zxing.integration.android.IntentIntegrator;
+import com.google.zxing.integration.android.IntentResult;
 
+import org.java_websocket.WebSocket;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.drafts.Draft_17;
 import org.java_websocket.handshake.ServerHandshake;
@@ -27,6 +29,7 @@ import org.json.JSONObject;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.channels.UnresolvedAddressException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -47,12 +50,27 @@ public class MainActivity extends AppCompatActivity {
 
         setupChatInput();
         setupChatListAdapter();
+    }
+
+    private void openNetworkConnections() {
+        if (mServerAddress == null) {
+            scanQrCode();
+            return;
+        }
+
+        try {
+            openWebSocket();
+        } catch (URISyntaxException e) {
+            scanQrCode();
+            return;
+        }
+
         startDataExportService();
     }
 
     private void startDataExportService() {
         Intent serviceIntent = new Intent(this, DataExportService.class);
-        serviceIntent.putExtra(DataExportService.HTTP_ENDPOINT, "http://peacedesk.n:1338/phone-data");
+        serviceIntent.putExtra(DataExportService.HTTP_ENDPOINT, "http://" + mServerAddress + "/phone-data");
         startService(serviceIntent);
     }
 
@@ -78,8 +96,18 @@ public class MainActivity extends AppCompatActivity {
                         return false;
                     }
 
-                    mWebSocketClient.send(mChatInput.getText().toString());
-                    mChatInput.setText("");
+                    if (mWebSocketClient != null) {
+                        try {
+                            mWebSocketClient.send(mChatInput.getText().toString());
+                            mChatInput.setText("");
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            Toast.makeText(getApplicationContext(), "Failed to send message", Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        Toast.makeText(getApplicationContext(), "No connection established. Scan QR-Code", Toast.LENGTH_SHORT).show();
+                    }
+
                     return true;
                 }
 
@@ -91,7 +119,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        openWebSocket();
+
+        openNetworkConnections();
     }
 
     @Override
@@ -134,22 +163,36 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        IntentResult result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
+        if (result == null) {
+            return;
+        }
+
+        if (result.getContents() == null) {
+            Log.d(this.getLocalClassName(), "Cancelled scan");
+        } else {
+            String scanResult = result.getContents();
+            Toast.makeText(this, "Scanned: " + scanResult ,Toast.LENGTH_LONG).show();
+
+            mServerAddress = scanResult;
+        }
+    }
+
+    @Override
     protected void onStop() {
         super.onStop();
 
         if (mWebSocketClient != null) {
+            Log.d(this.getLocalClassName(), "onStop close WebSocket");
             mWebSocketClient.close();
         }
+
+        chatEntries.clear();
     }
 
-    private void openWebSocket() {
-        URI uri;
-        try {
-            uri = new URI("ws://peacedesk.n:1338/chat");
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-            return;
-        }
+    private void openWebSocket() throws URISyntaxException {
+        URI uri = new URI("ws://" + mServerAddress + "/chat");
 
         mWebSocketClient = new WebSocketClient(uri, new Draft_17()) {
             @Override
@@ -185,11 +228,15 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClose(int code, String reason, boolean remote) {
                 Log.i("WebSocket", "Closed " + reason);
+
+                mWebSocketClient = null;
             }
 
             @Override
             public void onError(Exception e) {
                 Log.i("WebSocket", "Error (" + e.getClass().getSimpleName() + ") " + e.getMessage());
+
+                mWebSocketClient = null;
             }
         };
 
