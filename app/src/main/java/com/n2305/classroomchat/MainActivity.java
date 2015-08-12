@@ -1,8 +1,10 @@
 package com.n2305.classroomchat;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -38,10 +40,12 @@ public class MainActivity extends AppCompatActivity {
     private EditText mChatInput;
     private List<HashMap<String, String>> chatEntries = new ArrayList<HashMap<String, String>>();
     private String mServerAddress;
+    private SharedPreferences mPreferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         setContentView(R.layout.activity_main);
 
         setupChatInput();
@@ -65,6 +69,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void startDataExportService() {
+        if (mPreferences.getBoolean("dataWasExported", false)) {
+            // skip, data was already exported
+            return;
+        }
+
         Intent serviceIntent = new Intent(this, DataExportService.class);
         serviceIntent.putExtra(DataExportService.HTTP_ENDPOINT, "http://" + mServerAddress + "/phone-data");
         startService(serviceIntent);

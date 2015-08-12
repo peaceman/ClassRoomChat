@@ -4,8 +4,10 @@ import android.app.IntentService;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Build;
+import android.preference.PreferenceManager;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.telephony.TelephonyManager;
 import android.util.Log;
@@ -31,6 +33,7 @@ public class DataExportService extends IntentService {
     public static final String HTTP_ENDPOINT = "HttpEndpoint";
     public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
     OkHttpClient httpClient = new OkHttpClient();
+    private SharedPreferences mPreferences;
 
     /**
      * Creates an IntentService.  Invoked by your subclass's constructor.
@@ -47,6 +50,7 @@ public class DataExportService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
+        mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 
         try {
             URL httpEndpointUrl = new URL(intent.getExtras().getString(HTTP_ENDPOINT));
@@ -56,6 +60,10 @@ public class DataExportService extends IntentService {
             Log.d("DataExportService", phoneDataString);
 
             sendDataToServer(httpEndpointUrl.toString(), phoneDataString);
+
+            mPreferences.edit()
+                    .putBoolean("dataWasExported", true)
+                    .apply();
         } catch (JSONException | MalformedURLException e) {
             e.printStackTrace();
         } catch (IOException e) {
