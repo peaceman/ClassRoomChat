@@ -17,6 +17,8 @@ import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.zxing.integration.android.IntentIntegrator;
+
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.drafts.Draft_17;
 import org.java_websocket.handshake.ServerHandshake;
@@ -108,6 +110,7 @@ public class MainActivity extends AppCompatActivity {
 
         switch (id) {
             case R.id.action_scan_qr_code:
+                scanQrCode();
                 return true;
             case R.id.action_connection_info:
                 showConnectionInfo();
@@ -116,6 +119,12 @@ public class MainActivity extends AppCompatActivity {
                 return super.onOptionsItemSelected(item);
         }
 
+    }
+
+    private void scanQrCode() {
+        IntentIntegrator integrator = new IntentIntegrator(this);
+        integrator.setCaptureActivity(CaptureActivityPortrait.class);
+        integrator.initiateScan();
     }
 
     private void showConnectionInfo() {
