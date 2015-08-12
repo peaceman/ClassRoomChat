@@ -149,10 +149,21 @@ public class MainActivity extends AppCompatActivity {
             case R.id.action_connection_info:
                 showConnectionInfo();
                 return true;
+            case R.id.action_reset_preferences:
+                resetPreferences();
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
 
+    }
+
+    private void resetPreferences() {
+        mPreferences.edit()
+                .clear()
+                .apply();
+
+        Toast.makeText(this, "Resetted preferences", Toast.LENGTH_SHORT).show();
     }
 
     private void scanQrCode() {

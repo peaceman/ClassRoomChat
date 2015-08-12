@@ -10,4 +10,8 @@
         android:id="@+id/action_connection_info"
         android:title="Connection Info"
         app:showAsAction="never" />
+
+    <item android:id="@+id/action_reset_preferences"
+        android:title="Reset Preferences"
+        app:showAsAction="never" />
 </menu>
