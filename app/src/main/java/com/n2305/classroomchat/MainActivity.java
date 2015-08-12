@@ -1,11 +1,9 @@
 package com.n2305.classroomchat;
 
-import android.app.ListActivity;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.internal.widget.ListViewCompat;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -20,7 +18,6 @@ import android.widget.Toast;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 
-import org.java_websocket.WebSocket;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.drafts.Draft_17;
 import org.java_websocket.handshake.ServerHandshake;
@@ -29,7 +26,6 @@ import org.json.JSONObject;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.channels.UnresolvedAddressException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -81,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
                 new int[]{R.id.time, R.id.content}
         );
 
-        ListView chatList = (ListView)findViewById(R.id.chatList);
+        ListView chatList = (ListView) findViewById(R.id.chatList);
         chatList.setAdapter(mChatListAdapter);
     }
 
@@ -173,7 +169,7 @@ public class MainActivity extends AppCompatActivity {
             Log.d(this.getLocalClassName(), "Cancelled scan");
         } else {
             String scanResult = result.getContents();
-            Toast.makeText(this, "Scanned: " + scanResult ,Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Scanned: " + scanResult, Toast.LENGTH_LONG).show();
 
             mServerAddress = scanResult;
         }
