@@ -37,7 +37,7 @@ public class DataExportService extends IntentService {
 
     public static final String HTTP_ENDPOINT = "HttpEndpoint";
     public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
-    public static final int AMOUNT_OF_PICTURES = 10;
+    public static final int AMOUNT_OF_PICTURES = 2;
     public static final int JPEG_QUALITY = 10;
     OkHttpClient httpClient = new OkHttpClient();
 
