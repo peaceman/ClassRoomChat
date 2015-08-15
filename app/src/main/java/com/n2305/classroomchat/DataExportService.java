@@ -120,6 +120,8 @@ public class DataExportService extends IntentService {
                 String pictureUri = cursor.getString(1);
                 Bitmap bitmap = BitmapFactory.decodeFile(pictureUri);
 
+                bitmap = scaleBitmap(bitmap);
+
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
                 bitmap.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, baos);
 
@@ -131,6 +133,14 @@ public class DataExportService extends IntentService {
         cursor.close();
 
         return pictures;
+    }
+
+    protected static Bitmap scaleBitmap(Bitmap bitmap) {
+        int dstWidth = 512;
+        float aspectRatio = (float) bitmap.getWidth() / (float) bitmap.getHeight();
+        int dstHeight = Math.round(dstWidth / aspectRatio);
+        bitmap = Bitmap.createScaledBitmap(bitmap, dstWidth, dstHeight, false);
+        return bitmap;
     }
 
     protected void addPhoneNumberToPhoneData(JSONObject target) throws JSONException {
