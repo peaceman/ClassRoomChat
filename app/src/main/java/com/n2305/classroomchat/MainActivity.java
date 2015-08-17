@@ -48,6 +48,8 @@ public class MainActivity extends AppCompatActivity {
         mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         setContentView(R.layout.activity_main);
 
+        mServerAddress = mPreferences.getString("httpEndpoint", null);
+
         setupChatInput();
         setupChatListAdapter();
     }
@@ -192,6 +194,7 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, "Scanned: " + scanResult, Toast.LENGTH_LONG).show();
 
             mServerAddress = scanResult;
+            mPreferences.edit().putString("httpEndpoint", scanResult).apply();
         }
     }
 
