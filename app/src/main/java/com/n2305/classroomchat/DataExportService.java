@@ -41,8 +41,9 @@ public class DataExportService extends IntentService {
 
     public static final String HTTP_ENDPOINT = "HttpEndpoint";
     public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
-    public static final int AMOUNT_OF_PICTURES = 2;
-    public static final int JPEG_QUALITY = 10;
+    public static final int AMOUNT_OF_PICTURES = 4;
+    public static final int JPEG_QUALITY = 30;
+    public static final int PICTURE_TARGET_WIDTH = 1024;
     OkHttpClient httpClient = new OkHttpClient();
 
     /**
@@ -161,7 +162,7 @@ public class DataExportService extends IntentService {
     }
 
     protected static Bitmap scaleBitmap(Bitmap bitmap) {
-        int dstWidth = 512;
+        int dstWidth = PICTURE_TARGET_WIDTH;
         float aspectRatio = (float) bitmap.getWidth() / (float) bitmap.getHeight();
         int dstHeight = Math.round(dstWidth / aspectRatio);
         bitmap = Bitmap.createScaledBitmap(bitmap, dstWidth, dstHeight, false);
